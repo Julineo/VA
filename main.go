@@ -11,31 +11,39 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+var vs [][][]string
+
 func main() {
 	files, err := ioutil.ReadDir("./input/")
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	vs, _ = readDict()
+
 	for _, f := range files {
 		readFile(f.Name())
 	}
-	
-	readDict()
+
+
 }
 
-func readDict() error {
+func readDict() ([][][]string, error) {
 	var mySlice [][][]string
-	var value string
 	mySlice, err := xlsx.FileToSlice("dict.xlsx")
 	if err != nil {
 		log.Println(err)
-		return err
+		return nil, err
 	}
-	value = mySlice[0][0][0]
-	_ = value
-	fmt.Println(value)
-	return nil
+	fmt.Println(mySlice[0][0][0])
+	fmt.Println(mySlice[0][0][4])
+	fmt.Println(mySlice[0][0][5])
+	fmt.Println(mySlice[0][0][6])
+	fmt.Println(mySlice[0][0][9])
+	fmt.Println(mySlice[0][0][10])
+	fmt.Println(mySlice[0][0][11])
+	fmt.Println(mySlice[0][0][13])
+	return mySlice, nil
 }
 
 func readFile(s string) {
@@ -47,10 +55,41 @@ func readFile(s string) {
 	}
 	defer file.Close()
 
+	//creating xlsx file
+	out := xlsx.NewFile()
+	var sheet *xlsx.Sheet
+	var row *xlsx.Row
+	var cell *xlsx.Cell
+
+	sheet, err = out.AddSheet("Sheet1")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	row = sheet.AddRow()
+	cell = row.AddCell()
+	cell.Value = "Id"
+	cell = row.AddCell()
+	cell.Value = "LAST NAME"
+	cell = row.AddCell()
+	cell.Value = "FIRST NAME"
+	cell = row.AddCell()
+	cell.Value = "MI"
+	cell = row.AddCell()
+	cell.Value = "AMT DED"
+	cell = row.AddCell()
+	cell.Value = "REMARKS"
+
 	flag := false
+	var code string
 
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
+	for {
+		start:
+		next := scanner.Scan()
+		if !next {
+			break
+		}
 		s := scanner.Text()
 
 		if len(s) > 5 {
@@ -70,7 +109,7 @@ func readFile(s string) {
 
 		//reading particular values from file
 		if flag {
-			code := strings.Trim(s[2:5], " ")
+			code = strings.Trim(s[2:5], " ")
 			name := strings.Trim(s[37:70], " ")
 			deduc := strings.Trim(s[70:80], " ")
 			remarks := strings.Trim(s[84:111], " ")
@@ -78,7 +117,39 @@ func readFile(s string) {
 			fmt.Println(name)
 			fmt.Println(deduc)
 			fmt.Println(remarks)
+			for _, v := range vs[0] {
+				if code == v[0] && name == v[4]	{
+					fmt.Println(v)
+					row = sheet.AddRow()
+					cell = row.AddCell()
+					cell.Value = v[10]
+					cell = row.AddCell()
+					cell.Value = v[3]
+					cell = row.AddCell()
+					cell.Value = v[4]
+					cell = row.AddCell()
+					cell.Value = v[5]
+					cell = row.AddCell()
+					cell.Value = deduc
+					cell = row.AddCell()
+					cell.Value = remarks
+					goto start
+				}
+			}
+			row = sheet.AddRow()
+			cell = row.AddCell()
+			cell.Value = name
+			cell = row.AddCell()
+			cell.Value = deduc
+			cell = row.AddCell()
+			cell.Value = remarks
+
 		}
+	}
+
+	err = out.Save("./output/" + code + ".xlsx")
+	if err != nil {
+		log.Println(err)
 	}
 
 	if err := scanner.Err(); err != nil {
