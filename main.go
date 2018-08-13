@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,19 +34,10 @@ func readDict() ([][][]string, error) {
 		log.Println(err)
 		return nil, err
 	}
-	fmt.Println(mySlice[0][0][0])
-	fmt.Println(mySlice[0][0][4])
-	fmt.Println(mySlice[0][0][5])
-	fmt.Println(mySlice[0][0][6])
-	fmt.Println(mySlice[0][0][9])
-	fmt.Println(mySlice[0][0][10])
-	fmt.Println(mySlice[0][0][11])
-	fmt.Println(mySlice[0][0][13])
 	return mySlice, nil
 }
 
 func readFile(s string) {
-	fmt.Println("./input/" + s)
 
 	file, err := os.Open("./input/" + s)
 	if err != nil {
@@ -113,22 +103,17 @@ func readFile(s string) {
 			name := strings.Trim(s[37:70], " ")
 			deduc := strings.Trim(s[70:80], " ")
 			remarks := strings.Trim(s[84:111], " ")
-			fmt.Println(code)
-			fmt.Println(name)
-			fmt.Println(deduc)
-			fmt.Println(remarks)
 			for _, v := range vs[0] {
 				if code == v[0] && name == v[4]	{
-					fmt.Println(v)
 					row = sheet.AddRow()
+					cell = row.AddCell()
+					cell.Value = v[13]
+					cell = row.AddCell()
+					cell.Value = v[9]
 					cell = row.AddCell()
 					cell.Value = v[10]
 					cell = row.AddCell()
-					cell.Value = v[3]
-					cell = row.AddCell()
-					cell.Value = v[4]
-					cell = row.AddCell()
-					cell.Value = v[5]
+					cell.Value = v[11]
 					cell = row.AddCell()
 					cell.Value = deduc
 					cell = row.AddCell()
@@ -138,7 +123,10 @@ func readFile(s string) {
 			}
 			row = sheet.AddRow()
 			cell = row.AddCell()
-			cell.Value = name
+			for _, s := range strings.Fields(name) {
+				cell = row.AddCell()
+				cell.Value = s
+			}
 			cell = row.AddCell()
 			cell.Value = deduc
 			cell = row.AddCell()
